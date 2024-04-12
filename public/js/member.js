@@ -1,10 +1,3 @@
-document.getElementById('registrationForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    console.log(`Registering ${name} with email ${email}`);
-});
-
 document.getElementById('profileForm').addEventListener('submit', function(event) {
     event.preventDefault();
     const updatedData = {
