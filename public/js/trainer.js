@@ -16,3 +16,9 @@ document.getElementById('profileSearchForm').addEventListener('submit', function
     // Displaying fetched data
     document.getElementById('memberProfileResult').textContent = `Profile data for ${memberName}`;
 });
+
+function logout() {
+    // Clear user session storage or any other cleanup needed
+    sessionStorage.clear(); // or localStorage.clear();
+    window.location.href = 'login.html'; // Redirect to login page
+}

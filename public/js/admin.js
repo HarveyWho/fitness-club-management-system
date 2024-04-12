@@ -31,3 +31,9 @@ document.getElementById('billingForm').addEventListener('submit', function(event
     console.log(`Processing payment of $${amountDue} for member ID ${memberId}`);
     // Process payment in backend
 });
+
+function logout() {
+    // Clear user session storage or any other cleanup needed
+    sessionStorage.clear(); // or localStorage.clear();
+    window.location.href = 'login.html'; // Redirect to login page
+}

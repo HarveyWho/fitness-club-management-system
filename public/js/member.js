@@ -35,3 +35,9 @@ window.onload = function displayDashboard() {
     document.getElementById('fitnessAchievements').textContent = 'Completed 100 Yoga Sessions';
     document.getElementById('healthStatistics').textContent = 'Heart Rate: 60 bpm, Calories: 500/day';
 };
+
+function logout() {
+    // Clear user session storage or any other cleanup needed
+    sessionStorage.clear(); // or localStorage.clear();
+    window.location.href = 'login.html'; // Redirect to login page
+}
