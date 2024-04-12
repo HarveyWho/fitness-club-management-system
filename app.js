@@ -5,9 +5,9 @@ const app = express();
 // Serve static files from the public directory
 app.use(express.static('public'));
 
-// Home page route
+// Redirect the base URL to the login page
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.redirect('/login.html');  // Ensure that 'login.html' is correctly placed in the 'public' directory
 });
 
 // Start the server
