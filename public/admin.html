@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <title>Admin Portal</title>
+</head>
+<body>
+    <h1>Admin Dashboard</h1>
+
+    <!-- Room Booking Management -->
+    <section>
+        <h2>Room Booking Management</h2>
+        <form id="bookingForm">
+            <input type="text" id="room" placeholder="Room Number" required>
+            <input type="datetime-local" id="bookingTime" required>
+            <input type="submit" value="Book Room">
+        </form>
+    </section>
+
+    <!-- Equipment Maintenance Monitoring -->
+    <section>
+        <h2>Equipment Maintenance Monitoring</h2>
+        <form id="maintenanceForm">
+            <input type="text" id="equipmentId" placeholder="Equipment ID" required>
+            <input type="submit" value="Report Maintenance">
+        </form>
+    </section>
+
+    <!-- Class Schedule Updating -->
+    <section>
+        <h2>Class Schedule Updating</h2>
+        <form id="scheduleUpdateForm">
+            <input type="text" id="newSchedule" placeholder="New Schedule Details" required>
+            <input type="submit" value="Update Schedule">
+        </form>
+    </section>
+
+    <!-- Billing and Payment Processing -->
+    <section>
+        <h2>Billing and Payment Processing</h2>
+        <form id="billingForm">
+            <input type="text" id="memberId" placeholder="Member ID" required>
+            <input type="number" id="amountDue" placeholder="Amount Due" required>
+            <input type="submit" value="Process Payment">
+        </form>
+    </section>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>

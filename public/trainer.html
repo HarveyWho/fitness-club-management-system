@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <title>Trainer Portal</title>
+</head>
+<body>
+    <h1>Trainer Dashboard</h1>
+
+    <!-- Set Availability -->
+    <section>
+        <h2>Set Availability</h2>
+        <form id="availabilityForm">
+            <input type="datetime-local" id="startTime" required>
+            <input type="datetime-local" id="endTime" required>
+            <input type="submit" value="Set Availability">
+        </form>
+    </section>
+
+    <!-- View Member Profile -->
+    <section>
+        <h2>View Member Profile</h2>
+        <form id="profileSearchForm">
+            <input type="text" id="memberName" placeholder="Enter Member Name" required>
+            <input type="submit" value="Search">
+        </div>
+    </section>
+
+    <script src="js/trainer.js"></script>
+</body>
+</html>

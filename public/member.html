@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <title>Member Portal</title>
+</head>
+<body>
+    <h1>Member Portal</h1>
+
+    <!-- User Registration -->
+    <section>
+        <h2>Register</h2>
+        <form id="registrationForm">
+            <input type="text" id="name" placeholder="Name" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="submit" value="Register">
+        </form>
+    </section>
+
+    <!-- Profile Management -->
+    <section>
+        <h2>Manage Profile</h2>
+        <form id="profileForm">
+            <input type="text" id="name" placeholder="Name" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="text" id="fitnessGoals" placeholder="Fitness Goals" required>
+            <input type="text" id="healthMetrics" placeholder="Health Metrics" required>
+            <input type="submit" value="Update Profile">
+        </form>
+    </section>
+
+    <!-- Dashboard Display -->
+    <section>
+        <h2>Dashboard</h2>
+        <div id="dashboard">
+            <p><strong>Exercise Routines:</strong> <span id="exerciseRoutines">Loading...</span></p>
+            <p><strong>Fitness Achievements:</strong> <span id="fitnessAchievements">Loading...</span></p>
+            <p><strong>Health Statistics:</strong> <span id="healthStatistics">Loading...</span></p>
+        </div>
+    </section>
+
+    <!-- Schedule Management -->
+    <section>
+        <h2>Schedule Training Session</h2>
+        <form id="scheduleForm">
+            <input type="datetime-local" id="sessionTime" required>
+            <input type="submit" value="Schedule Session">
+        </form>
+    </section>
+
+    <script src="js/member.js"></script>
+</body>
+</html>
