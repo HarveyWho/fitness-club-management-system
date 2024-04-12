@@ -78,6 +78,25 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+app.post('/api/register', async (req, res) => {
+    const { firstName, lastName, email, password, dateOfBirth, gender, phone, address, exerciseRoutines } = req.body;
+
+    const query = `
+        INSERT INTO Members (first_name, last_name, email, password, join_date, address, phone_number, date_of_birth, gender, exercise_routines)
+        VALUES ($1, $2, $3, $4, CURRENT_DATE, $5, $6, $7, $8, $9)
+        RETURNING member_id;
+    `;
+    
+    try {
+        const result = await client.query(query, [firstName, lastName, email, password, address, phone, dateOfBirth, gender, exerciseRoutines]);
+        res.json({ memberId: result.rows[0].member_id, message: 'User registered successfully.' });
+    } catch (error) {
+        console.error('Error executing query', error.stack);
+        res.status(500).json({ message: 'Error registering user.' });
+    }
+});
+
+
 // Start the server
 app.listen(3000, () => {
     console.log('Server running on http://localhost:3000');
