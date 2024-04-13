@@ -28,14 +28,33 @@
         </form>
     </section>
 
-    <!-- Class Schedule Updating -->
+    <!-- ... existing HTML ... -->
+
+    <!-- Make Class Section -->
     <section>
-        <h2>Class Schedule Updating</h2>
-        <form id="scheduleUpdateForm">
-            <input type="text" id="newSchedule" placeholder="New Schedule Details" required>
-            <input type="submit" value="Update Schedule">
+        <h2>Make Class</h2>
+        <form id="classCreationForm">
+            <input type="text" id="classDescription" placeholder="Description" required>
+            <input type="number" id="classSpaceLeft" placeholder="Space Left" required>
+            <input type="time" id="classStartTime" required>
+            <input type="time" id="classEndTime" required>
+            <input type="number" id="classTrainerId" placeholder="Trainer ID" required>
+            <input type="number" id="classRoomId" placeholder="Room ID" required>
+            <input type="text" id="classDayOfWeek" placeholder="Day of the Week" required>
+            <input type="submit" value="Make Class">
         </form>
     </section>
+
+    <!-- Class List Section -->
+    <section>
+        <h2>Class List</h2>
+        <div id="classListContainer">
+            <!-- Class list items will be loaded here -->
+        </div>
+    </section>
+
+<!-- ... existing HTML ... -->
+
 
     <!-- Billing and Payment Processing -->
     <section>

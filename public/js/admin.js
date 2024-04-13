@@ -1,39 +1,83 @@
-// Room booking management
-document.getElementById('bookingForm').addEventListener('submit', function(event) {
+// Add the new class creation function
+function makeClass(event) {
     event.preventDefault();
-    const room = document.getElementById('room').value;
-    const bookingTime = document.getElementById('bookingTime').value;
-    console.log(`Booking room ${room} at ${bookingTime}`);
-    // Handle room booking in backend
-});
+    // Gather form data
+    const formData = {
+        description: document.getElementById('classDescription').value,
+        space_left: parseInt(document.getElementById('classSpaceLeft').value, 10),
+        start_time: document.getElementById('classStartTime').value + ":00",
+        end_time: document.getElementById('classEndTime').value + ":00",
+        trainer_id: parseInt(document.getElementById('classTrainerId').value, 10),
+        room_id: parseInt(document.getElementById('classRoomId').value, 10),
+        day_of_the_week: document.getElementById('classDayOfWeek').value
+    };
 
-// Equipment maintenance reporting
-document.getElementById('maintenanceForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const equipmentId = document.getElementById('equipmentId').value;
-    console.log(`Reporting maintenance for equipment ID ${equipmentId}`);
-    // Log maintenance in backend
-});
-
-// Class schedule updating
-document.getElementById('scheduleUpdateForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const newSchedule = document.getElementById('newSchedule').value;
-    console.log(`Updating class schedule to ${newSchedule}`);
-    // Update schedule in backend
-});
-
-// Billing and payment processing
-document.getElementById('billingForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const memberId = document.getElementById('memberId').value;
-    const amountDue = document.getElementById('amountDue').value;
-    console.log(`Processing payment of $${amountDue} for member ID ${memberId}`);
-    // Process payment in backend
-});
-
-function logout() {
-    // Clear user session storage or any other cleanup needed
-    sessionStorage.clear(); // or localStorage.clear();
-    window.location.href = 'login.html'; // Redirect to login page
+    sendUpdateRequest('/api/makeClass', formData)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Class created successfully!');
+            loadClassList(); // Reload the list of classes
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => console.error('Error making class:', error));
 }
+
+// Load the list of all classes
+function loadClassList() {
+    fetch('/api/getAllClasses', { method: 'GET' })
+    .then(response => response.json())
+    .then(classes => {
+        const classListContainer = document.getElementById('classListContainer');
+        classListContainer.innerHTML = ''; // Clear the list
+        classes.forEach(classInfo => {
+            const classElement = document.createElement('div');
+            classElement.className = 'class-item';
+            // Add class details here
+            classElement.innerHTML = `
+                <p>${classInfo.description} - ${classInfo.day_of_the_week}</p>
+                <p>Start Time: ${classInfo.start_time}</p>
+                <p>End Time: ${classInfo.end_time}</p>
+                <p>Trainer ID: ${classInfo.trainer_id}</p>
+                <p>Room ID: ${classInfo.room_id}</p>
+                <p>Spaces Left: ${classInfo.space_left}</p>
+                <button onclick="cancelClass(${classInfo.class_id})">Cancel Class</button>
+            `;
+            classListContainer.appendChild(classElement);
+        });
+    })
+    .catch(error => console.error('Error loading classes:', error));
+}
+
+// Cancel a class
+function cancelClass(classId) {
+    sendUpdateRequest('/api/cancelClass', { class_id: classId })
+    .then(response => response.json())
+    .then(data => {
+        alert('Class cancelled successfully!');
+        loadClassList(); // Reload the list of classes
+    })
+    .catch(error => console.error('Error cancelling class:', error));
+}
+
+// Existing logout and other helper functions ...
+// Helper function to send update requests
+function sendUpdateRequest(url, data) {
+    return fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    });
+}
+
+// Call the loadClassList when the page loads
+window.onload = function() {
+    loadClassList();
+    // Bind the 'makeClass' function to the class creation form
+    document.getElementById('classCreationForm').addEventListener('submit', makeClass);
+    // ... other onload code
+};

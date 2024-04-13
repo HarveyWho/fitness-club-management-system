@@ -65,11 +65,11 @@ CREATE TABLE Classes (
     class_id SERIAL PRIMARY KEY,
     description TEXT,
     space_left INT,
-    date DATE,
     start_time TIME,
     end_time TIME,
     trainer_id INT REFERENCES Trainer(trainer_id),
-    room_id INT REFERENCES Room(Room_id)
+    room_id INT REFERENCES Room(Room_id),
+    day_of_the_week VARCHAR(20)
 );
 
 
@@ -93,3 +93,6 @@ CREATE TABLE Payments (
     amount FLOAT,
     payment_date DATE
 );
+
+
+After finishing the make class functions, you need to check trainer availability for the class, then check if the trainer is already teaching another class at the same time, if he is pick another trainer and repeat, if there’s no trainers available cancel the class. Remember you can check if the trainer is teaching another class through the class table.

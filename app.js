@@ -494,6 +494,88 @@ app.get('/api/getMemberHealthStatistics', async (req, res) => {
 });
 
 
+// Route for admin to make a new class
+app.post('/api/makeClass', async (req, res) => {
+    const {
+        description, space_left, start_time, end_time, trainer_id, room_id, day_of_the_week
+    } = req.body;
+
+    // Check trainer availability
+    const checkAvailabilityQuery = `
+        SELECT * FROM Trainer
+        WHERE trainer_id = $1 AND start_hour <= $2 AND end_hour >= $3;
+    `;
+
+    try {
+        // Ensure the trainer is available at the specified time
+        const availabilityResult = await client.query(checkAvailabilityQuery, [trainer_id, start_time, end_time]);
+        if (availabilityResult.rows.length === 0) {
+            return res.status(400).json({ message: 'Trainer not available at the specified time.' });
+        }
+
+        // Ensure the trainer doesn't have another class at the same time
+        const checkClassConflictQuery = `
+            SELECT * FROM Classes
+            WHERE trainer_id = $1 AND NOT (end_time <= $2 OR start_time >= $3);
+        `;
+        const classConflictResult = await client.query(checkClassConflictQuery, [trainer_id, start_time, end_time]);
+        if (classConflictResult.rows.length > 0) {
+            return res.status(400).json({ message: 'Trainer already has a class during the specified time.' });
+        }
+
+        // Insert new class into the database
+        const insertClassQuery = `
+            INSERT INTO Classes (description, space_left, start_time, end_time, trainer_id, room_id, day_of_the_week)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING *;
+        `;
+        const result = await client.query(insertClassQuery, [description, space_left, start_time, end_time, trainer_id, room_id, day_of_the_week]);
+        res.json({ message: 'Class created successfully.', class: result.rows[0] });
+    } catch (error) {
+        console.error('Error creating class:', error);
+        res.status(500).json({ message: 'Error creating class.' });
+    }
+});
+
+// Route for admin to get a list of all classes
+app.get('/api/getAllClasses', async (req, res) => {
+    const query = 'SELECT * FROM Classes;';
+    try {
+        const result = await client.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching all classes:', error);
+        res.status(500).json({ message: 'Internal server error while fetching all classes.' });
+    }
+});
+
+// Route for admin to cancel a class
+app.post('/api/cancelClass', async (req, res) => {
+    const { class_id } = req.body;
+
+    // Begin transaction
+    await client.query('BEGIN');
+    try {
+        // Delete the class
+        const deleteClassQuery = 'DELETE FROM Classes WHERE class_id = $1 RETURNING *;';
+        const deleteResult = await client.query(deleteClassQuery, [class_id]);
+        
+        if (deleteResult.rowCount === 0) {
+            throw new Error('Class not found or already cancelled.');
+        }
+
+        // Commit transaction
+        await client.query('COMMIT');
+        res.json({ message: 'Class cancelled successfully.', class: deleteResult.rows[0] });
+    } catch (error) {
+        // Rollback transaction on error
+        await client.query('ROLLBACK');
+        console.error('Error cancelling class:', error);
+        res.status(500).json({ message: 'Error cancelling class.' });
+    }
+});
+
+
 
 // Start the server
 app.listen(3000, () => {
