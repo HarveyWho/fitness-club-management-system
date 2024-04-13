@@ -5,6 +5,7 @@ const session = require('express-session');
 
 const app = express();
 
+var memberIdGlobal = 0;
 // Configure session middleware
 app.use(session({
   secret: 'your-secret-key', // You should use a real secret key here
@@ -66,6 +67,8 @@ app.post('/api/login', async (req, res) => {
         if (result.rows.length > 0) {
             // Set the memberId in the session
             req.session.memberId = result.rows[0].member_id;
+            memberIdGlobal = result.rows[0].member_id
+            console.log("Recorded memberId:", result.rows[0].member_id) //debug
 
             let redirectUrl;
             switch (domain) {
@@ -91,8 +94,10 @@ app.post('/api/login', async (req, res) => {
 
 app.get('/api/getMemberData', async (req, res) => {
     // Ensure that the session middleware is configured correctly
-    if (req.session && req.session.memberId) {
-        const memberId = req.session.memberId;
+    // console.log("req.session", req.session); //debug
+    console.log("req.session.memberId:", req.session.memberId); //debug
+    if (req.session && memberIdGlobal) {
+        const memberId = memberIdGlobal;
         const query = `
             SELECT 
                 m.*,
