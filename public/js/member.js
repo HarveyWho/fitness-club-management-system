@@ -37,37 +37,106 @@ function loadMemberData() {
     });
 }
 
-// Event listener for updating profile
-document.getElementById('profileForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    // Implement form submission logic to update the profile
-});
+// Helper function to send update requests
+function sendUpdateRequest(url, data) {
+    return fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    });
+}
 
-// Event listener for updating health statistics
-document.getElementById('healthStatsForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    // Implement form submission logic to update health statistics
-});
 
-// Event listener for updating fitness goals
-document.getElementById('fitnessGoalsForm').addEventListener('submit', function(event) {
+// Function to update the member profile
+function updateProfile(event) {
     event.preventDefault();
-    // Implement form submission logic to update fitness goals
-});
+    const profileData = {
+        // Gather the input values here
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+        address: document.getElementById('address').value,
+        phoneNumber: document.getElementById('phoneNumber').value,
+        dateOfBirth: document.getElementById('dateOfBirth').value,
+        gender: document.getElementById('gender').value,
+        exerciseRoutines: document.getElementById('exerciseRoutines').value
+    };
+    sendUpdateRequest('/api/updateProfile', profileData)
+        .then(response => response.json())
+        .then(data => alert('Profile updated successfully!'))
+        .catch(error => console.error('Error updating profile:', error));
+}
 
-// Event listener for scheduling a session
-document.getElementById('scheduleForm').addEventListener('submit', function(event) {
+
+
+// Function to update health statistics
+function updateHealthStats(event) {
     event.preventDefault();
-    // Implement form submission logic to schedule a session
-});
+    const healthData = {
+        // Gather the input values here
+        height: document.getElementById('height').value,
+        weight: document.getElementById('weight').value,
+        heartRate: document.getElementById('heartRate').value,
+        bloodPressure: document.getElementById('bloodPressure').value,
+        bodyMassIndex: document.getElementById('bodyMassIndex').value
+    };
+    sendUpdateRequest('/api/updateHealthStats', healthData)
+        .then(response => response.json())
+        .then(data => alert('Health statistics updated successfully!'))
+        .catch(error => console.error('Error updating health statistics:', error));
+}
 
-// Logout function
+
+
+// Function to update fitness goals
+function updateFitnessGoals(event) {
+    event.preventDefault();
+    const goalsData = {
+        // Gather the input values here
+        weightGoal: document.getElementById('weightGoal').value,
+        heartRateGoal: document.getElementById('heartRateGoal').value,
+        bloodPressureGoal: document.getElementById('bloodPressureGoal').value,
+        bmiGoal: document.getElementById('bmiGoal').value,
+        durationDays: document.getElementById('durationDays').value
+    };
+    sendUpdateRequest('/api/updateFitnessGoals', goalsData)
+        .then(response => response.json())
+        .then(data => alert('Fitness goals updated successfully!'))
+        .catch(error => console.error('Error updating fitness goals:', error));
+}
+
+
+
+// Function to schedule a training session
+function scheduleSession(event) {
+    event.preventDefault();
+    const sessionData = {
+        // Gather the input values here
+    };
+    sendUpdateRequest('/api/scheduleSession', sessionData)
+        .then(response => response.json())
+        .then(data => alert('Session scheduled successfully!'))
+        .catch(error => console.error('Error scheduling session:', error));
+}
+
+
+
+// Function to handle logout
 function logout() {
     sessionStorage.clear();
     window.location.href = 'login.html';
 }
 
+
+
+// Add event listeners to forms
+document.getElementById('profileForm').addEventListener('submit', updateProfile);
+document.getElementById('healthStatsForm').addEventListener('submit', updateHealthStats);
+document.getElementById('fitnessGoalsForm').addEventListener('submit', updateFitnessGoals);
+document.getElementById('scheduleForm').addEventListener('submit', scheduleSession);
+
 // Load existing member data when the page loads
-window.onload = function() {
-    loadMemberData();
-};
+window.onload = loadMemberData;
