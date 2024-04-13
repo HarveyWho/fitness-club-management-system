@@ -52,7 +52,7 @@ function loadAvailableClasses() {
             const classElement = document.createElement('div');
             classElement.className = 'class-item';
             classElement.innerHTML = `
-                <h3>${classItem.description} (${classItem.date})</h3>
+                <h3>${classItem.description} (${classItem.day_of_the_week})</h3>
                 <p>Start Time: ${classItem.start_time}</p>
                 <p>End Time: ${classItem.end_time}</p>
                 <p>Trainer ID: ${classItem.trainer_id}</p>

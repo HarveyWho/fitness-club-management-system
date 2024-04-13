@@ -227,7 +227,7 @@ app.post('/api/updateHealthStats', async (req, res) => {
   
 
   app.get('/api/getAvailableClasses', async (req, res) => {
-    const query = 'SELECT * FROM Classes WHERE space_left > 0 ORDER BY date, start_time;';
+    const query = 'SELECT * FROM Classes WHERE space_left > 0  ORDER BY day_of_the_week, start_time;;';
     try {
         const result = await client.query(query);
         res.json(result.rows);
