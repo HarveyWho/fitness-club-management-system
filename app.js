@@ -577,6 +577,42 @@ app.post('/api/cancelClass', async (req, res) => {
 
 
 
+// Route to get all equipment
+app.get('/api/getAllEquipment', async (req, res) => {
+    try {
+        const query = 'SELECT * FROM Equipment;';
+        const result = await client.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching equipment:', error);
+        res.status(500).json({ message: 'Error fetching equipment data.' });
+    }
+});
+
+// Route to update equipment status to 'Maintained'
+app.post('/api/maintainEquipment', async (req, res) => {
+    const { equipment_id } = req.body;
+    try {
+        const updateQuery = `
+            UPDATE Equipment
+            SET status = 'Maintained'
+            WHERE equipment_id = $1
+            RETURNING *;
+        `;
+        const result = await client.query(updateQuery, [equipment_id]);
+        if (result.rows.length > 0) {
+            res.json({ success: true, message: 'Equipment status updated successfully.', equipment: result.rows[0] });
+        } else {
+            res.status(404).json({ success: false, message: 'Equipment not found.' });
+        }
+    } catch (error) {
+        console.error('Error updating equipment status:', error);
+        res.status(500).json({ success: false, message: 'Error updating equipment status.' });
+    }
+});
+
+
+
 // Start the server
 app.listen(3000, () => {
     console.log('Server running on http://localhost:3000');
