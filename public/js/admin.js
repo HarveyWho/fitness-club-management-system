@@ -138,6 +138,29 @@ function maintainEquipment(equipmentId) {
     .catch(error => console.error('Error maintaining equipment:', error));
 }
 
+// Function to load the list of all rooms
+function loadRoomList() {
+    fetch('/api/getAllRooms', { method: 'GET' })
+    .then(response => response.json())
+    .then(rooms => {
+        const roomListContainer = document.getElementById('roomListContainer');
+        roomListContainer.innerHTML = ''; // Clear the list
+
+        rooms.forEach(room => {
+            const roomElement = document.createElement('div');
+            roomElement.className = 'room-item';
+            roomElement.innerHTML = `
+                <span>Room ID: ${room.room_id} - Name: ${room.room_name} - Max Space: ${room.max_space}</span>
+                <span> - Available From: ${room.start_hour} To: ${room.end_hour}</span>
+            `;
+            roomListContainer.appendChild(roomElement);
+        });
+    })
+    .catch(error => {
+        console.error('Error loading room list:', error);
+    });
+}
+
 // Helper function to send update requests
 function sendUpdateRequest(url, data) {
     return fetch(url, {
@@ -155,7 +178,8 @@ function sendUpdateRequest(url, data) {
 window.onload = function() {
     loadClassList();
     loadEquipmentList();
-    // Bind the 'makeClass' function to the class creation form
+    loadRoomList();
+    
     document.getElementById('classCreationForm').addEventListener('submit', makeClass);
     // ... other onload code
 };

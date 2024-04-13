@@ -611,6 +611,17 @@ app.post('/api/maintainEquipment', async (req, res) => {
     }
 });
 
+// Route to get all rooms
+app.get('/api/getAllRooms', async (req, res) => {
+    try {
+        const query = 'SELECT * FROM Room;';
+        const result = await client.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching rooms:', error);
+        res.status(500).json({ message: 'Error fetching room data.' });
+    }
+});
 
 
 // Start the server
