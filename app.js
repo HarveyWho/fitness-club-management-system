@@ -6,6 +6,7 @@ const session = require('express-session');
 const app = express();
 
 var memberIdGlobal = 0;
+var trainerIdGlobal = 0;
 // Configure session middleware
 app.use(session({
   secret: 'your-secret-key', // You should use a real secret key here
@@ -67,8 +68,10 @@ app.post('/api/login', async (req, res) => {
         if (result.rows.length > 0) {
             // Set the memberId in the session
             req.session.memberId = result.rows[0].member_id;
-            memberIdGlobal = result.rows[0].member_id
-            //console.log("Recorded memberId:", result.rows[0].member_id) //debug
+            req.session.trainerId = result.rows[0].trainer_id;
+            memberIdGlobal = result.rows[0].member_id;
+            trainerIdGlobal = result.rows[0].trainer_id;
+            console.log("Recorded trainerId:", result.rows[0].trainer_id) //debug
 
             let redirectUrl;
             switch (domain) {
@@ -132,6 +135,33 @@ app.get('/api/getMemberData', async (req, res) => {
         }
     } else {
         res.status(401).send('Session data not found');
+    }
+});
+
+app.get('/api/getTrainerData', async (req, res) => {
+    //const { trainerId } = req.query; // Assuming you pass the trainerId as a query parameter
+
+    // Ensure the trainer is logged in and the session contains their trainerId
+    if (req.session && trainerIdGlobal) {
+        const trainerId = trainerIdGlobal;
+        const query = `
+            SELECT * FROM Trainer
+            WHERE trainer_id = $1;
+        `;
+
+        try {
+            const result = await client.query(query, [trainerId]);
+            if (result.rows.length > 0) {
+                res.json(result.rows[0]);
+            } else {
+                res.status(404).send('Trainer data not found');
+            }
+        } catch (error) {
+            console.error('Database error:', error);
+            res.status(500).send('Internal Server Error');
+        }
+    } else {
+        res.status(401).send('Unauthorized access or session data not found');
     }
 });
 
@@ -332,6 +362,71 @@ app.post('/api/cancelJoin', async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
+
+
+ // Route to update the member's fitness goals
+ app.post('/api/updateFitnessGoals', async (req, res) => {
+    const { weightGoal, heartRateGoal, bloodPressureGoal, bmiGoal, durationDays } = req.body;
+    const memberId = memberIdGlobal; // Replace with req.session.memberId once session management is fixed
+  
+    const updateFitnessGoalsQuery = `
+      UPDATE Fitness_Goals
+      SET weight_goal = $1,
+          heart_rate_goal = $2,
+          blood_pressure_goal = $3,
+          bmi_goal = $4,
+          duration_days = $5
+      WHERE member_id = $6
+      RETURNING *;
+    `;
+  
+    try {
+      const result = await client.query(updateFitnessGoalsQuery, [weightGoal, heartRateGoal, bloodPressureGoal, bmiGoal, durationDays, memberId]);
+      if (result.rows.length > 0) {
+        res.json({ message: 'Fitness goals updated successfully.' });
+      } else {
+        res.status(404).json({ message: 'Fitness goals not found for member.' });
+      }
+    } catch (error) {
+      console.error('Error updating fitness goals:', error);
+      res.status(500).json({ message: 'Error updating fitness goals.' });
+    }
+  });
+
+
+
+app.post('/api/updateTrainerAvailability', async (req, res) => {
+    const { startHour, endHour } = req.body;
+    const trainerId = trainerIdGlobal;
+    // Ensure the trainer is logged in and the session contains their trainerId
+
+    // Debugging: Log the received values
+    // console.log("Received startHour:", startHour);
+    // console.log("Received endHour:", endHour);
+    
+    const query = `
+        UPDATE Trainer
+        SET start_hour = $1, end_hour = $2
+        WHERE trainer_id = $3
+        RETURNING *;
+    `;
+
+    try {
+        const result = await client.query(query, [startHour, endHour, trainerId]);
+        if (result.rows.length > 0) {
+            res.json({ 
+                message: 'Trainer availability updated successfully.'  });
+        } else {
+            res.status(404).json({ message: 'Trainer not found.' });
+        }
+    } catch (error) {
+        console.error('Error updating trainer availability:', error);
+        res.status(500).json({ message: 'Error updating trainer availability.' });
+    }
+});
+
+
 
 
 // Start the server

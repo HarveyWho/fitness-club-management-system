@@ -1,42 +1,68 @@
-// Function to update trainer availability
-document.getElementById('availabilityForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const startTime = document.getElementById('startTime').value;
-    const endTime = document.getElementById('endTime').value;
-    // Retrieve the trainerId from sessionStorage
-    const trainerId = sessionStorage.getItem('trainerId');
-    if (!trainerId) {
-        alert('Not logged in or session has expired');
-        // Redirect to login page or handle accordingly
-        window.location.href = 'login.html';
-        return;
-    }
-
-// Now you can use trainerId in your fetch request or any other logic
-
-    // Send the updated availability to the server
-    fetch('/api/updateTrainerAvailability', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ trainerId, startTime, endTime })
-    })
+// Function to load existing trainer data
+function loadTrainerData(trainerId) {
+    fetch('/api/getTrainerData', { method: 'GET' })
     .then(response => {
         if (!response.ok) {
-            throw new Error('Failed to update availability.');
+            throw new Error('Network response was not ok');
         }
         return response.json();
     })
     .then(data => {
-        alert('Availability updated successfully!');
-        // Optionally, you might want to update the UI or perform other actions here
+        // Set the values of the input fields with the trainer's current data
+        document.getElementById('startTime').value = data.start_hour || '';
+        document.getElementById('endTime').value = data.end_hour || '';
+        // Set other trainer fields if necessary
+        // ...
     })
     .catch(error => {
-        console.error('Error updating availability:', error);
-        alert(error.message);
+        console.error('Error fetching trainer data:', error);
     });
-});
+}
+
+
+
+// Helper function to send update requests
+function sendUpdateRequest(url, data) {
+    return fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    });
+}
+
+
+
+// Function to update trainer availability
+function updateTrainerAvailability(event) {
+    event.preventDefault();
+    const startHour = document.getElementById('startTime').value;
+    const endHour = document.getElementById('endTime').value;
+
+    // Debugging: Log the values being sent
+    // console.log("Sending startHour:", startHour);
+    // console.log("Sending endHour:", endHour);
+
+    const availabilityData = {
+        startHour: startHour + ":00", // Ensure time format HH:MM:SS
+        endHour: endHour + ":00" // Ensure time format HH:MM:SS
+    };
+
+    sendUpdateRequest('/api/updateTrainerAvailability', availabilityData)
+        .then(response => response.json())
+        .then(data => alert('Trainer Availability updated successfully!'))
+        .catch(error => console.error('Error updating trainer availability:', error));
+}
+
+
+// Add the function to window.onload event to make sure it is executed when the page is loaded
+window.onload = function() {
+    loadTrainerData();
+};
+
+// Add event listeners to update trainer schedule
+document.getElementById('availabilityForm').addEventListener('submit', updateTrainerAvailability);
 
 // View member profile
 document.getElementById('profileSearchForm').addEventListener('submit', function(event) {
