@@ -56,23 +56,79 @@ function updateTrainerAvailability(event) {
 }
 
 
-// Add the function to window.onload event to make sure it is executed when the page is loaded
-window.onload = function() {
-    loadTrainerData();
-};
+
 
 // Add event listeners to update trainer schedule
 document.getElementById('availabilityForm').addEventListener('submit', updateTrainerAvailability);
 
-// View member profile
-document.getElementById('profileSearchForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const memberName = document.getElementById('memberName').value;
-    // Fetch member data from backend
-    console.log(`Searching for member profile: ${memberName}`);
-    // Displaying fetched data
-    document.getElementById('memberProfileResult').textContent = `Profile data for ${memberName}`;
-});
+// Function to load the list of members
+function loadMemberList() {
+    fetch('/api/getAllMembers', { method: 'GET' })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(members => {
+        const memberListContainer = document.getElementById('memberListContainer');
+        memberListContainer.innerHTML = ''; // Clear the list
+
+        members.forEach(member => {
+            const memberElement = document.createElement('div');
+            memberElement.className = 'member-item';
+            memberElement.innerHTML = `
+                <span>${member.first_name} ${member.last_name} - ${member.date_of_birth}</span>
+                <button onclick="viewMemberProfile(${member.member_id})">View Profile</button>
+            `;
+            memberListContainer.appendChild(memberElement);
+        });
+    })
+    .catch(error => {
+        console.error('Error loading member list:', error);
+    });
+}
+
+// Function to view a member's profile
+function viewMemberProfile(memberId) {
+    Promise.all([
+        fetch(`/api/getMemberFitnessGoals?memberId=${memberId}`).then(res => res.json()),
+        fetch(`/api/getMemberHealthStatistics?memberId=${memberId}`).then(res => res.json())
+    ])
+    .then(([fitnessGoals, healthStatistics]) => {
+        // Assume you have a function to handle the display of this information
+        displayMemberDetails(fitnessGoals, healthStatistics);
+    })
+    .catch(error => {
+        console.error('Error viewing member profile:', error);
+    });
+}
+
+// Function to display member's fitness goals and health statistics
+function displayMemberDetails(fitnessGoals, healthStatistics) {
+    const profileDetailsContainer = document.getElementById('profileDetailsContainer');
+    profileDetailsContainer.innerHTML = `
+        <h3>Fitness Goals</h3>
+        <p>Weight Goal: ${fitnessGoals.weight_goal}</p>
+        <p>Heart Rate Goal: ${fitnessGoals.heart_rate_goal}</p>
+        <p>Blood Pressure Goal: ${fitnessGoals.blood_pressure_goal}</p>
+        <p>BMI Goal: ${fitnessGoals.BMI_goal}</p>
+        <p>Duration Days: ${fitnessGoals.duration_days}</p>
+
+        <h3>Health Statistics</h3>
+        <p>Height: ${healthStatistics.height}</p>
+        <p>Weight: ${healthStatistics.weight}</p>
+        <p>Heart Rate: ${healthStatistics.heart_rate}</p>
+        <p>Blood Pressure: ${healthStatistics.blood_pressure}</p>
+        <p>Body Mass Index: ${healthStatistics.body_mass_index}</p>
+    `;
+}
+
+// Add the function to window.onload event to make sure it is executed when the page is loaded
+window.onload = function() {
+    loadTrainerData();
+    loadMemberList();
+};
 
 function logout() {
     sessionStorage.removeItem('trainerId'); // Remove trainerId from sessionStorage

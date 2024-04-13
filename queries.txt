@@ -20,7 +20,9 @@ CREATE TABLE Trainer (
     email VARCHAR(100),
     phone_number VARCHAR(20),
     date_of_birth DATE,
-    gender VARCHAR(10)
+    gender VARCHAR(10),
+    start_hour TIME,
+    end_hour TIME
 );
 
 CREATE TABLE Administrative_Staff (

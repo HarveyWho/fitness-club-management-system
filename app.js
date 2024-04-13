@@ -426,6 +426,58 @@ app.post('/api/updateTrainerAvailability', async (req, res) => {
     }
 });
 
+app.get('/api/getAllMembers', async (req, res) => {
+    const query = 'SELECT member_id, first_name, last_name, date_of_birth FROM Members;';
+    try {
+        const result = await client.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching members:', error);
+        res.status(500).json({ message: 'Internal server error while fetching members.' });
+    }
+});
+
+app.get('/api/getMemberFitnessGoals', async (req, res) => {
+    const { memberId } = req.query;
+    
+    const query = `
+        SELECT * FROM Fitness_Goals
+        WHERE member_id = $1;
+    `;
+
+    try {
+        const result = await client.query(query, [memberId]);
+        if (result.rows.length > 0) {
+            res.json(result.rows[0]);
+        } else {
+            res.status(404).json({ message: 'Fitness goals not found for member.' });
+        }
+    } catch (error) {
+        console.error('Error fetching member fitness goals:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+app.get('/api/getMemberHealthStatistics', async (req, res) => {
+    const { memberId } = req.query;
+    
+    const query = `
+        SELECT * FROM Health_Statistics
+        WHERE member_id = $1;
+    `;
+
+    try {
+        const result = await client.query(query, [memberId]);
+        if (result.rows.length > 0) {
+            res.json(result.rows[0]);
+        } else {
+            res.status(404).json({ message: 'Health statistics not found for member.' });
+        }
+    } catch (error) {
+        console.error('Error fetching member health statistics:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
 
 
 
