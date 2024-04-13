@@ -1,9 +1,17 @@
 const express = require('express');
-const path = require('path');
 const bodyParser = require('body-parser');
 const { Client } = require('pg');
+const session = require('express-session');
 
 const app = express();
+
+// Configure session middleware
+app.use(session({
+  secret: 'your-secret-key', // You should use a real secret key here
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: true } // Set to true if using https
+}));
 
 // PostgreSQL client setup
 const client = new Client({
@@ -56,6 +64,9 @@ app.post('/api/login', async (req, res) => {
     try {
         const result = await client.query(query, [email, password]);
         if (result.rows.length > 0) {
+            // Set the memberId in the session
+            req.session.memberId = result.rows[0].member_id;
+
             let redirectUrl;
             switch (domain) {
                 case 'member.com':
@@ -78,24 +89,42 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-app.post('/api/register', async (req, res) => {
-    const { firstName, lastName, email, password, dateOfBirth, gender, phone, address, exerciseRoutines } = req.body;
+app.get('/api/getMemberData', async (req, res) => {
+    // Ensure that the session middleware is configured correctly
+    if (req.session && req.session.memberId) {
+        const memberId = req.session.memberId;
+        const query = `
+            SELECT 
+                m.*,
+                f.weight_goal, f.heart_rate_goal, f.blood_pressure_goal, f.bmi_goal, f.duration_days,
+                h.height, h.weight, h.heart_rate, h.blood_pressure, h.body_mass_index
+            FROM 
+                Members m
+            LEFT JOIN 
+                Fitness_Goals f ON m.member_id = f.member_id
+            LEFT JOIN 
+                Health_Statistics h ON m.member_id = h.member_id
+            WHERE 
+                m.member_id = $1;
+        `;
 
-    const query = `
-        INSERT INTO Members (first_name, last_name, email, password, join_date, address, phone_number, date_of_birth, gender, exercise_routines)
-        VALUES ($1, $2, $3, $4, CURRENT_DATE, $5, $6, $7, $8, $9)
-        RETURNING member_id;
-    `;
-    
-    try {
-        const result = await client.query(query, [firstName, lastName, email, password, address, phone, dateOfBirth, gender, exerciseRoutines]);
-        res.json({ memberId: result.rows[0].member_id, message: 'User registered successfully.' });
-    } catch (error) {
-        console.error('Error executing query', error.stack);
-        res.status(500).json({ message: 'Error registering user.' });
+        try {
+            const result = await client.query(query, [memberId]);
+            if (result.rows.length > 0) {
+                res.json(result.rows[0]);
+            } else {
+                res.status(404).send('Member data not found');
+            }
+        } catch (error) {
+            console.error('Database error:', error);
+            res.status(500).send('Internal Server Error');
+        }
+    } else {
+        res.status(401).send('Session data not found');
     }
 });
 
+// ... (other routes and middleware)
 
 // Start the server
 app.listen(3000, () => {
