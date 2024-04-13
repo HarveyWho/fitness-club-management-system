@@ -556,7 +556,11 @@ app.post('/api/cancelClass', async (req, res) => {
     // Begin transaction
     await client.query('BEGIN');
     try {
-        // Delete the class
+        // First, delete any references to the class in the Class_members table
+        const deleteMembersQuery = 'DELETE FROM Class_members WHERE class_id = $1;';
+        await client.query(deleteMembersQuery, [class_id]);
+
+        // Then, delete the class itself
         const deleteClassQuery = 'DELETE FROM Classes WHERE class_id = $1 RETURNING *;';
         const deleteResult = await client.query(deleteClassQuery, [class_id]);
         
@@ -574,6 +578,7 @@ app.post('/api/cancelClass', async (req, res) => {
         res.status(500).json({ message: 'Error cancelling class.' });
     }
 });
+
 
 
 
@@ -620,6 +625,31 @@ app.get('/api/getAllRooms', async (req, res) => {
     } catch (error) {
         console.error('Error fetching rooms:', error);
         res.status(500).json({ message: 'Error fetching room data.' });
+    }
+});
+
+
+// Route to update room availability times
+app.post('/api/updateRoomTimes', async (req, res) => {
+    const { roomId, startHour, endHour } = req.body;
+
+    const query = `
+        UPDATE Room
+        SET start_hour = $2, end_hour = $3
+        WHERE room_id = $1
+        RETURNING *;
+    `;
+
+    try {
+        const result = await client.query(query, [roomId, startHour, endHour]);
+        if (result.rowCount > 0) {
+            res.json({ success: true, room: result.rows[0] });
+        } else {
+            res.status(404).json({ success: false, message: 'Room not found.' });
+        }
+    } catch (error) {
+        console.error('Error updating room times:', error);
+        res.status(500).json({ success: false, message: 'Error updating room times.' });
     }
 });
 

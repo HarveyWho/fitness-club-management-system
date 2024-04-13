@@ -56,12 +56,15 @@ function cancelClass(classId) {
     sendUpdateRequest('/api/cancelClass', { class_id: classId })
     .then(response => response.json())
     .then(data => {
-        alert('Class cancelled successfully!');
+        if(data.message) {
+            alert(data.message);
+        } else {
+            alert('Class cancelled successfully!');
+        }
         loadClassList(); // Reload the list of classes
     })
     .catch(error => console.error('Error cancelling class:', error));
 }
-
 
 
 // Load the list of all classes
@@ -151,7 +154,9 @@ function loadRoomList() {
             roomElement.className = 'room-item';
             roomElement.innerHTML = `
                 <span>Room ID: ${room.room_id} - Name: ${room.room_name} - Max Space: ${room.max_space}</span>
-                <span> - Available From: ${room.start_hour} To: ${room.end_hour}</span>
+                <input type="time" id="roomStart-${room.room_id}" value="${room.start_hour.slice(0,5)}">
+                <input type="time" id="roomEnd-${room.room_id}" value="${room.end_hour.slice(0,5)}">
+                <button onclick="updateRoomTimes(${room.room_id})">Update Times</button>
             `;
             roomListContainer.appendChild(roomElement);
         });
@@ -160,6 +165,31 @@ function loadRoomList() {
         console.error('Error loading room list:', error);
     });
 }
+
+// Function to update room times
+function updateRoomTimes(roomId) {
+    const startHour = document.getElementById(`roomStart-${roomId}`).value;
+    const endHour = document.getElementById(`roomEnd-${roomId}`).value;
+
+    const roomData = {
+        roomId,
+        startHour: startHour + ":00", // Ensure time format HH:MM:SS
+        endHour: endHour + ":00"  // Ensure time format HH:MM:SS
+    };
+
+    sendUpdateRequest('/api/updateRoomTimes', roomData)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Room times updated successfully!');
+            loadRoomList(); // Reload the list of rooms to reflect changes
+        } else {
+            alert('Error updating room times: ' + data.message);
+        }
+    })
+    .catch(error => console.error('Error updating room times:', error));
+}
+
 
 // Helper function to send update requests
 function sendUpdateRequest(url, data) {
@@ -183,3 +213,9 @@ window.onload = function() {
     document.getElementById('classCreationForm').addEventListener('submit', makeClass);
     // ... other onload code
 };
+
+// Function to handle logout
+function logout() {
+    sessionStorage.clear();
+    window.location.href = 'login.html';
+}
