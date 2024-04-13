@@ -426,16 +426,30 @@ app.post('/api/updateTrainerAvailability', async (req, res) => {
     }
 });
 
+
+
 app.get('/api/getAllMembers', async (req, res) => {
-    const query = 'SELECT member_id, first_name, last_name, date_of_birth FROM Members;';
+    const trainerId = trainerIdGlobal; // Ensure this is set after the trainer logs in
+    
+    const query = `
+        SELECT DISTINCT m.member_id, m.first_name, m.last_name, m.date_of_birth, c.description AS class_name
+        FROM Members m
+        INNER JOIN Class_members cm ON m.member_id = cm.member_id
+        INNER JOIN Classes c ON cm.class_id = c.class_id
+        WHERE c.trainer_id = $1
+        ORDER BY c.description, m.last_name, m.first_name;
+    `;
+
     try {
-        const result = await client.query(query);
+        const result = await client.query(query, [trainerId]);
         res.json(result.rows);
     } catch (error) {
-        console.error('Error fetching members:', error);
-        res.status(500).json({ message: 'Internal server error while fetching members.' });
+        console.error('Error fetching members and classes:', error);
+        res.status(500).json({ message: 'Internal server error while fetching members and classes.' });
     }
 });
+
+
 
 app.get('/api/getMemberFitnessGoals', async (req, res) => {
     const { memberId } = req.query;

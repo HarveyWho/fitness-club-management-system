@@ -55,11 +55,9 @@ function updateTrainerAvailability(event) {
         .catch(error => console.error('Error updating trainer availability:', error));
 }
 
-
-
-
 // Add event listeners to update trainer schedule
 document.getElementById('availabilityForm').addEventListener('submit', updateTrainerAvailability);
+
 
 // Function to load the list of members
 function loadMemberList() {
@@ -74,48 +72,65 @@ function loadMemberList() {
         const memberListContainer = document.getElementById('memberListContainer');
         memberListContainer.innerHTML = ''; // Clear the list
 
+        let currentClass = '';
         members.forEach(member => {
+            // Check if we've moved to a new class, and add a header if so
+            if (currentClass !== member.class_name) {
+                currentClass = member.class_name;
+                const classHeader = document.createElement('h3');
+                classHeader.textContent = currentClass;
+                memberListContainer.appendChild(classHeader);
+            }
+
             const memberElement = document.createElement('div');
             memberElement.className = 'member-item';
             memberElement.innerHTML = `
-                <span>${member.first_name} ${member.last_name} - ${member.date_of_birth}</span>
-                <button onclick="viewMemberProfile(${member.member_id})">View Profile</button>
+                <span>${member.first_name} ${member.last_name} - ${new Date(member.date_of_birth).toLocaleDateString()}</span>
+                <button id="viewProfile-${member.member_id}" onclick="toggleMemberProfile(${member.member_id})">View Profile</button>
+                <div id="profileDetails-${member.member_id}" class="profile-details" style="display: none;"></div>
             `;
             memberListContainer.appendChild(memberElement);
         });
     })
-    .catch(error => {
-        console.error('Error loading member list:', error);
-    });
 }
 
-// Function to view a member's profile
-function viewMemberProfile(memberId) {
+
+// Function to toggle a member's profile visibility
+function toggleMemberProfile(memberId) {
+    const profileDetails = document.getElementById(`profileDetails-${memberId}`);
+    if (profileDetails.style.display === 'none') {
+        viewMemberProfile(memberId, profileDetails);
+    } else {
+        profileDetails.style.display = 'none';
+    }
+}
+
+// Function to view a member's profile and update the display
+function viewMemberProfile(memberId, profileDetailsContainer) {
     Promise.all([
         fetch(`/api/getMemberFitnessGoals?memberId=${memberId}`).then(res => res.json()),
         fetch(`/api/getMemberHealthStatistics?memberId=${memberId}`).then(res => res.json())
     ])
     .then(([fitnessGoals, healthStatistics]) => {
-        // Assume you have a function to handle the display of this information
-        displayMemberDetails(fitnessGoals, healthStatistics);
+        displayMemberDetails(fitnessGoals, healthStatistics, profileDetailsContainer);
+        profileDetailsContainer.style.display = 'block';
     })
     .catch(error => {
         console.error('Error viewing member profile:', error);
     });
 }
 
-// Function to display member's fitness goals and health statistics
-function displayMemberDetails(fitnessGoals, healthStatistics) {
-    const profileDetailsContainer = document.getElementById('profileDetailsContainer');
+// Function to display member's fitness goals and health statistics within a specified container
+function displayMemberDetails(fitnessGoals, healthStatistics, profileDetailsContainer) {
     profileDetailsContainer.innerHTML = `
-        <h3>Fitness Goals</h3>
+        <h4>Fitness Goals</h4>
         <p>Weight Goal: ${fitnessGoals.weight_goal}</p>
         <p>Heart Rate Goal: ${fitnessGoals.heart_rate_goal}</p>
         <p>Blood Pressure Goal: ${fitnessGoals.blood_pressure_goal}</p>
         <p>BMI Goal: ${fitnessGoals.BMI_goal}</p>
         <p>Duration Days: ${fitnessGoals.duration_days}</p>
 
-        <h3>Health Statistics</h3>
+        <h4>Health Statistics</h4>
         <p>Height: ${healthStatistics.height}</p>
         <p>Weight: ${healthStatistics.weight}</p>
         <p>Heart Rate: ${healthStatistics.heart_rate}</p>
