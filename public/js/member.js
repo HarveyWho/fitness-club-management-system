@@ -208,6 +208,60 @@ function updateFitnessGoals(event) {
         .catch(error => console.error('Error updating fitness goals:', error));
 }
 
+// Function to load the bill to pay
+function loadBillInfo() {
+    fetch('/api/getMemberBill', { method: 'GET' })
+    .then(response => response.json())
+    .then(data => {
+        const billInfoContainer = document.getElementById('billInfo');
+        billInfoContainer.innerHTML = `
+            <p>Amount Due: $${data.amount}</p>
+            <p>Payment Due Date: ${data.payment_date}</p>
+        `;
+    })
+    .catch(error => console.error('Error fetching bill info:', error));
+}
+
+// Function to update fitness goals
+function updateFitnessGoals(event) {
+    event.preventDefault();
+    const goalsData = {
+        // Gather the input values here
+        weightGoal: document.getElementById('weightGoal').value,
+        heartRateGoal: document.getElementById('heartRateGoal').value,
+        bloodPressureGoal: document.getElementById('bloodPressureGoal').value,
+        bmiGoal: document.getElementById('bmiGoal').value,
+        durationDays: document.getElementById('durationDays').value
+    };
+    sendUpdateRequest('/api/updateFitnessGoals', goalsData)
+        .then(response => response.json())
+        .then(data => alert('Fitness goals updated successfully!'))
+        .catch(error => console.error('Error updating fitness goals:', error));
+}
+
+// Function to handle bill payment
+function payBill(event) {
+    event.preventDefault();
+    const paymentData = {
+        amount: document.getElementById('paymentAmount').value
+    };
+    
+    // Use the helper function to send the payment data
+    sendUpdateRequest('/api/payBill', paymentData)
+    .then(response => response.json)
+    .then(data => {
+        alert('Payment processed successfully!');
+        loadBillInfo(); // Reload the bill info to show the updated amount
+    })
+    .catch(error => {
+        // If there was an error with the payment, log it to the console and alert the user
+        console.error('Error processing payment:', error);
+        alert('Error processing payment.');
+    });
+}
+
+// Add the event listener to the payment form submit event
+document.getElementById('paymentForm').addEventListener('submit', payBill);
 
 
 // Function to handle logout
@@ -226,4 +280,5 @@ document.getElementById('fitnessGoalsForm').addEventListener('submit', updateFit
 window.onload = function() {
     loadMemberData();
     loadAvailableClasses(); // Also load available classes
+    loadBillInfo();
 };

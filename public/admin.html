@@ -56,12 +56,13 @@
     <!-- Billing and Payment Processing -->
     <section>
         <h2>Billing and Payment Processing</h2>
-        <form id="billingForm">
-            <input type="text" id="memberId" placeholder="Member ID" required>
-            <input type="number" id="amountDue" placeholder="Amount Due" required>
-            <input type="submit" value="Process Payment">
-        </form>
+        <div id="paymentListContainer">
+            <!-- Payment items will be loaded here by the admin.js script -->
+        </div>
     </section>
+
+<script src="js/admin.js"></script>
+
 
     <section>
         <button onclick="logout()">Logout</button>

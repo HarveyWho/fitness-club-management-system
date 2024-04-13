@@ -95,4 +95,10 @@ CREATE TABLE Payments (
 );
 
 
-After finishing the make class functions, you need to check trainer availability for the class, then check if the trainer is already teaching another class at the same time, if he is pick another trainer and repeat, if there’s no trainers available cancel the class. Remember you can check if the trainer is teaching another class through the class table.
+
+
+Now I have attached the member files. 
+
+First of all, members will have one more section called bill to pay. This information should also be found from the payments table. It should only show each member with their own bill. 
+
+Next, upon receiving a bill, members will see an alert that tells them the amount to pay. 

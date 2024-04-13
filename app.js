@@ -71,7 +71,7 @@ app.post('/api/login', async (req, res) => {
             req.session.trainerId = result.rows[0].trainer_id;
             memberIdGlobal = result.rows[0].member_id;
             trainerIdGlobal = result.rows[0].trainer_id;
-            console.log("Recorded trainerId:", result.rows[0].trainer_id) //debug
+            //console.log("Recorded trainerId:", result.rows[0].trainer_id) //debug
 
             let redirectUrl;
             switch (domain) {
@@ -652,6 +652,116 @@ app.post('/api/updateRoomTimes', async (req, res) => {
         res.status(500).json({ success: false, message: 'Error updating room times.' });
     }
 });
+
+
+// Route to get all payments
+app.get('/api/getAllPayments', async (req, res) => {
+    try {
+        const query = 'SELECT * FROM Payments;';
+        const result = await client.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching payments:', error);
+        res.status(500).json({ message: 'Internal server error while fetching payments.' });
+    }
+});
+
+// Route to simulate sending a bill to a member and updating the amount
+app.post('/api/sendBill/:memberId', async (req, res) => {
+    const { memberId } = req.params;
+    const { amount } = req.body; // Amount received from the client
+
+    // Update payment amount in the database
+    try {
+        const updateQuery = `
+            UPDATE Payments
+            SET amount = $1
+            WHERE member_id = $2
+            RETURNING *;
+        `;
+        const result = await client.query(updateQuery, [amount, memberId]);
+
+        if (result.rowCount === 0) {
+            res.status(404).json({ message: 'Payment record not found.' });
+        } else {
+            console.log(`Bill updated and sent to member ${memberId}`); // Simulate sending the bill
+            res.json({ message: `Payment alert and update sent to member ID: ${memberId}` });
+        }
+    } catch (error) {
+        console.error('Error updating payment amount:', error);
+        res.status(500).json({ message: 'Error updating payment amount.' });
+    }
+});
+
+
+// Route to get member's bill
+app.get('/api/getMemberBill', async (req, res) => {
+    // Assuming the member's ID is stored in session or another mechanism
+    const memberId = memberIdGlobal; 
+    try {
+        const query = 'SELECT amount, payment_date FROM Payments WHERE member_id = $1;';
+        const result = await client.query(query, [memberId]);
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error fetching member bill:', error);
+        res.status(500).json({ message: 'Error fetching bill data.' });
+    }
+});
+
+
+// Route to update the member's health statistics
+app.post('/api/updateHealthStats', async (req, res) => {
+    const { height, weight, heartRate, bloodPressure, bodyMassIndex } = req.body;
+    const memberId = memberIdGlobal; // Replace with req.session.memberId once session management is fixed
+  
+    const updateHealthStatsQuery = `
+      UPDATE Health_Statistics
+      SET height = $1,
+          weight = $2,
+          heart_rate = $3,
+          blood_pressure = $4,
+          body_mass_index = $5
+      WHERE member_id = $6
+      RETURNING *;
+    `;
+  
+    try {
+      const result = await client.query(updateHealthStatsQuery, [height, weight, heartRate, bloodPressure, bodyMassIndex, memberId]);
+      if (result.rows.length > 0) {
+        res.json({ message: 'Health statistics updated successfully.' });
+      } else {
+        res.status(404).json({ message: 'Health statistics not found for member.' });
+      }
+    } catch (error) {
+      console.error('Error updating health statistics:', error);
+      res.status(500).json({ message: 'Error updating health statistics.' });
+    }
+  });
+
+
+// Route to process a payment
+app.post('/api/payBill', async (req, res) => {
+    const { amount } = req.body;
+    const memberId = memberIdGlobal; 
+    try {
+        const updateQuery = `
+            UPDATE Payments
+            SET amount = amount - $1
+            WHERE member_id = $2
+            RETURNING amount;
+        `;
+        const result = await client.query(updateQuery, [amount, memberId]);
+        if (result.rows.length > 0) {
+            res.json({ message: 'Payment updated successfully.', newAmount: result.rows[0].amount });
+        } else {
+            res.status(404).json({ message: 'No bill found for the member.' });
+        }
+    } catch (error) {
+        console.error('Error updating payment:', error);
+        res.status(500).json({ message: 'Error processing payment.' });
+    }
+});
+
 
 
 // Start the server

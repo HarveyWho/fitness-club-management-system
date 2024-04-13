@@ -94,9 +94,6 @@ function loadClassList() {
 }
 
 
-
-
-
 // Function to load the list of all equipment
 function loadEquipmentList() {
     fetch('/api/getAllEquipment', { method: 'GET' })
@@ -202,6 +199,48 @@ function sendUpdateRequest(url, data) {
     });
 }
 
+// Function to load the list of all payments
+function loadPaymentList() {
+    fetch('/api/getAllPayments', { method: 'GET' })
+    .then(response => response.json())
+    .then(payments => {
+        const paymentListContainer = document.getElementById('paymentListContainer');
+        paymentListContainer.innerHTML = ''; // Clear the list
+
+        payments.forEach(payment => {
+            const paymentElement = document.createElement('div');
+            paymentElement.className = 'payment-item';
+            paymentElement.innerHTML = `
+                <p>Member ID: ${payment.member_id}</p>
+                <input type="number" id="amount-${payment.member_id}" value="${payment.amount.toFixed(2)}" step="0.01">
+                <button onclick="sendBill(${payment.member_id})">Send Bill</button>
+            `;
+            paymentListContainer.appendChild(paymentElement);
+        });
+    })
+    .catch(error => console.error('Error loading payment list:', error));
+}
+
+// Function to send a bill alert to a member
+function sendBill(memberId) {
+    const amount = document.getElementById(`amount-${memberId}`).value;
+
+    // Sending updated amount along with the bill alert
+    fetch(`/api/sendBill/${memberId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ amount })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message); // "Payment alert sent to member"
+        loadPaymentList(); // Reload the payment list to reflect any changes
+    })
+    .catch(error => console.error('Error sending bill:', error));
+}
+
 
 
 // Call the loadClassList when the page loads
@@ -209,7 +248,7 @@ window.onload = function() {
     loadClassList();
     loadEquipmentList();
     loadRoomList();
-    
+    loadPaymentList();
     document.getElementById('classCreationForm').addEventListener('submit', makeClass);
     // ... other onload code
 };
