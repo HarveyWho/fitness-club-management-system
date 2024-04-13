@@ -14,11 +14,14 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Store the memberId in sessionStorage
+            sessionStorage.setItem('memberId', data.memberId);
             window.location.href = data.redirect;
         } else {
             alert(data.message);
         }
     })
+    
     .catch(error => {
         console.error('Error:', error);
         alert('Failed to authenticate. Please try again later.');

@@ -82,7 +82,13 @@ app.post('/api/login', async (req, res) => {
                     redirectUrl = 'admin.html';
                     break;
             }
-            res.json({ success: true, redirect: redirectUrl });
+            // After successful login
+            res.json({ 
+                success: true, 
+                redirect: redirectUrl, 
+                memberId: result.rows[0].member_id // Add memberId to the response
+            });
+  
         } else {
             res.status(401).json({ message: 'Invalid credentials.' });
         }
@@ -220,11 +226,113 @@ app.post('/api/updateHealthStats', async (req, res) => {
   });
   
 
-
-// Route to schedule a new training session
-app.post('/api/scheduleSession', async (req, res) => {
-    // Implement logic for scheduling a new session
+  app.get('/api/getAvailableClasses', async (req, res) => {
+    const query = 'SELECT * FROM Classes WHERE space_left > 0 ORDER BY date, start_time;';
+    try {
+        const result = await client.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching available classes:', error);
+        res.status(500).json({ message: 'Internal server error while fetching classes.' });
+    }
 });
+
+
+app.post('/api/joinClass', async (req, res) => {
+    const { classId, memberId } = req.body;
+
+    // Start transaction
+    await client.query('BEGIN');
+
+    try {
+        // Check if the member is already enrolled in the class
+        const checkEnrollmentQuery = 'SELECT 1 FROM Class_members WHERE class_id = $1 AND member_id = $2;';
+        const checkEnrollmentResult = await client.query(checkEnrollmentQuery, [classId, memberId]);
+        
+        if (checkEnrollmentResult.rows.length > 0) {
+            throw new Error('You are already enrolled in this class.');
+        }
+
+        // Get member details
+        const memberQuery = 'SELECT first_name, last_name FROM Members WHERE member_id = $1;';
+        const memberResult = await client.query(memberQuery, [memberId]);
+        if (memberResult.rows.length === 0) {
+            throw new Error('Member not found.');
+        }
+
+        const { first_name, last_name } = memberResult.rows[0];
+
+        // Insert into Class_members table
+        const insertQuery = `
+            INSERT INTO Class_members (class_id, member_id, first_name, last_name)
+            VALUES ($1, $2, $3, $4)
+            RETURNING *;
+        `;
+        await client.query(insertQuery, [classId, memberId, first_name, last_name]);
+
+         // Update space_left in the Classes table
+         const updateSpaceQuery = `
+         UPDATE Classes
+         SET space_left = space_left - 1
+         WHERE class_id = $1 AND space_left > 0
+         RETURNING space_left;
+        `;
+
+        const updateSpaceResult = await client.query(updateSpaceQuery, [classId]);
+            if (updateSpaceResult.rows.length === 0) {
+                throw new Error('No space left in the class, or class does not exist.');
+            }
+
+        // Commit transaction
+        await client.query('COMMIT');
+        res.json({ message: 'Successfully joined class and updated space left.' });
+        } catch (error) {
+            await client.query('ROLLBACK');
+        console.error('Error joining class:', error);
+     res.status(500).json({ message: error.message });
+ }
+});
+
+app.post('/api/cancelJoin', async (req, res) => {
+    const { classId, memberId } = req.body;
+    // Start transaction
+    await client.query('BEGIN');
+    try {
+        // Check if the member is currently enrolled
+        const checkEnrollmentQuery = `
+            SELECT 1 FROM Class_members
+            WHERE class_id = $1 AND member_id = $2;
+        `;
+        const checkResult = await client.query(checkEnrollmentQuery, [classId, memberId]);
+        if (checkResult.rows.length === 0) {
+            throw new Error('Member not enrolled in the class.');
+        }
+
+        // Remove the member from the class
+        const deleteMemberQuery = `
+            DELETE FROM Class_members
+            WHERE class_id = $1 AND member_id = $2;
+        `;
+        await client.query(deleteMemberQuery, [classId, memberId]);
+
+        // Increase space_left in the class
+        const increaseSpaceQuery = `
+            UPDATE Classes
+            SET space_left = space_left + 1
+            WHERE class_id = $1;
+        `;
+        await client.query(increaseSpaceQuery, [classId]);
+
+        // Commit transaction
+        await client.query('COMMIT');
+        res.json({ message: 'Successfully cancelled class join and updated space left.' });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Error cancelling class join:', error);
+        res.status(500).json({ message: error.message });
+    }
+});
+
 
 // Start the server
 app.listen(3000, () => {

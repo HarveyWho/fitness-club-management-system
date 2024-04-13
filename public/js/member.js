@@ -37,6 +37,105 @@ function loadMemberData() {
     });
 }
 
+
+// Existing functions...
+
+// Function to load available classes and create the list with join/cancel buttons
+function loadAvailableClasses() {
+    fetch('/api/getAvailableClasses', { method: 'GET' })
+    .then(response => response.json())
+    .then(classes => {
+        const classesContainer = document.getElementById('classesContainer');
+        classesContainer.innerHTML = ''; // Clear the list
+
+        classes.forEach(classItem => {
+            const classElement = document.createElement('div');
+            classElement.className = 'class-item';
+            classElement.innerHTML = `
+                <h3>${classItem.description} (${classItem.date})</h3>
+                <p>Start Time: ${classItem.start_time}</p>
+                <p>End Time: ${classItem.end_time}</p>
+                <p>Trainer ID: ${classItem.trainer_id}</p>
+                <p>Room ID: ${classItem.room_id}</p>
+                <p>Spaces Left: ${classItem.space_left}</p>
+                <button onclick="joinClass(${classItem.class_id})">Join Class</button>
+                <button id="cancel-${classItem.class_id}" class="cancel-btn">Cancel Join</button>
+            `;
+            classesContainer.appendChild(classElement);
+
+            // Event listener for the cancel join button
+            let cancelBtn = document.getElementById(`cancel-${classItem.class_id}`);
+            cancelBtn.addEventListener('click', function() {
+                cancelJoin(classItem.class_id);
+            });
+        });
+    })
+    .catch(error => console.error('Error loading classes:', error));
+}
+
+
+// Function to handle joining a class
+function joinClass(classId) {
+    const memberId = sessionStorage.getItem('memberId'); // Retrieve from sessionStorage
+    fetch('/api/joinClass', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ classId, memberId })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Member already enrolled.');
+        }
+        return response.json();
+    })
+    .then(data => {
+        alert('Successfully joined class!');
+        loadAvailableClasses(); // Refresh the class list
+    })
+    .catch(error => {
+        console.error('Error joining class:', error);
+        alert(error.message);
+    });
+}
+
+// Function to handle canceling a class join
+function cancelJoin(classId) {
+    const memberId = sessionStorage.getItem('memberId'); // Retrieve from sessionStorage
+    if (!memberId) {
+        alert('You are not logged in.');
+        return;
+    }
+
+    fetch('/api/cancelJoin', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ classId, memberId })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Member did not join in the first place, failed to cancel.');
+        }
+        return response.json();
+    })
+    .then(data => {
+        alert('Successfully canceled class join!');
+        loadAvailableClasses(); // Refresh the class list
+    })
+    .catch(error => {
+        console.error('Error canceling class join:', error);
+        alert(error.message);
+    });
+}
+
+
+// Existing window.onload function...
+
+
+
 // Helper function to send update requests
 function sendUpdateRequest(url, data) {
     return fetch(url, {
@@ -47,6 +146,7 @@ function sendUpdateRequest(url, data) {
         body: JSON.stringify(data)
     });
 }
+
 
 
 // Function to update the member profile
@@ -110,20 +210,6 @@ function updateFitnessGoals(event) {
 
 
 
-// Function to schedule a training session
-function scheduleSession(event) {
-    event.preventDefault();
-    const sessionData = {
-        // Gather the input values here
-    };
-    sendUpdateRequest('/api/scheduleSession', sessionData)
-        .then(response => response.json())
-        .then(data => alert('Session scheduled successfully!'))
-        .catch(error => console.error('Error scheduling session:', error));
-}
-
-
-
 // Function to handle logout
 function logout() {
     sessionStorage.clear();
@@ -136,7 +222,8 @@ function logout() {
 document.getElementById('profileForm').addEventListener('submit', updateProfile);
 document.getElementById('healthStatsForm').addEventListener('submit', updateHealthStats);
 document.getElementById('fitnessGoalsForm').addEventListener('submit', updateFitnessGoals);
-document.getElementById('scheduleForm').addEventListener('submit', scheduleSession);
 
-// Load existing member data when the page loads
-window.onload = loadMemberData;
+window.onload = function() {
+    loadMemberData();
+    loadAvailableClasses(); // Also load available classes
+};
