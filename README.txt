@@ -31,4 +31,4 @@ node app.js
 
 App.js is the server code. SQL file contains DDL and DML files. The public folder contains css, javascript, and html files. 
 
-Link to our video:
+Link to our video: https://youtu.be/xAhx6WJ2gVg
