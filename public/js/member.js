@@ -14,7 +14,7 @@ function loadMemberData() {
         document.getElementById('email').value = data.email || '';
         document.getElementById('address').value = data.address || '';
         document.getElementById('phoneNumber').value = data.phone_number || '';
-        document.getElementById('dateOfBirth').value = data.date_of_birth || '';
+        document.getElementById('dateOfBirth').value = formatDate(data.date_of_birth);
         document.getElementById('gender').value = data.gender || 'Select Gender';
         document.getElementById('exerciseRoutines').value = data.exercise_routines || '';
 
@@ -38,7 +38,12 @@ function loadMemberData() {
 }
 
 
-// Existing functions...
+// Helper function to format date to YYYY-MM-DD
+function formatDate(dateString) {
+    if (!dateString) return '';
+    
+    return dateString.split('T')[0];
+}
 
 // Function to load available classes and create the list with join/cancel buttons
 function loadAvailableClasses() {
@@ -130,9 +135,6 @@ function cancelJoin(classId) {
         alert(error.message);
     });
 }
-
-
-// Existing window.onload function...
 
 
 

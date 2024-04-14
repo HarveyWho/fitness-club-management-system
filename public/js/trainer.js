@@ -74,7 +74,7 @@ function loadMemberList() {
 
         let currentClass = '';
         members.forEach(member => {
-            // Check if we've moved to a new class, and add a header if so
+            
             if (currentClass !== member.class_name) {
                 currentClass = member.class_name;
                 const classHeader = document.createElement('h3');
