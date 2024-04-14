@@ -9,13 +9,13 @@ var memberIdGlobal = 0;
 var trainerIdGlobal = 0;
 // Configure session middleware
 app.use(session({
-  secret: 'your-secret-key', // You should use a real secret key here
+  secret: 'your-secret-key',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: true } // Set to true if using https
+  cookie: { secure: true }
 }));
 
-// PostgreSQL client setup
+// PostgreSQL setup, Dear TAs please don't forget to change these!
 const client = new Client({
     host: "localhost",
     user: "postgres",
