@@ -55,8 +55,8 @@ function loadAvailableClasses() {
                 <h3>${classItem.description} (${classItem.day_of_the_week})</h3>
                 <p>Start Time: ${classItem.start_time}</p>
                 <p>End Time: ${classItem.end_time}</p>
-                <p>Trainer ID: ${classItem.trainer_id}</p>
-                <p>Room ID: ${classItem.room_id}</p>
+                <p>Trainer: ${classItem.trainer_name}</p> <!-- Updated to show trainer name -->
+                <p>Room: ${classItem.room_name}</p> <!-- Updated to show room name -->
                 <p>Spaces Left: ${classItem.space_left}</p>
                 <button onclick="joinClass(${classItem.class_id})">Join Class</button>
                 <button id="cancel-${classItem.class_id}" class="cancel-btn">Cancel Join</button>
@@ -71,7 +71,7 @@ function loadAvailableClasses() {
         });
     })
     .catch(error => console.error('Error loading classes:', error));
-}
+} //new
 
 
 // Function to handle joining a class

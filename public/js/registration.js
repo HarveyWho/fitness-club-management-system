@@ -16,26 +16,27 @@ document.getElementById('registrationForm').addEventListener('submit', function(
 });
 
 function registerUser(userData) {
-    fetch('/api/register', { // the URL to your server-side registration endpoint
+    fetch('/api/register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(userData)
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        console.log('Success:', data);
-        alert('Registration successful!');
-        window.location.href = 'login.html'; // Redirect to login after registration
+        if (data.success) {
+            alert(data.message);
+            window.location.href = 'login.html'; // Redirect to login after successful registration
+        } else {
+            // If success is not true, or if success is undefined, stay on the page and alert the user
+            alert(data.message || 'Registration failed. Please try again.');
+        }
     })
-    .catch((error) => {
-        console.error('Error:', error);
-        alert('Registration failed: ' + error.message);
+    .catch(error => {
+        console.error('Registration failed:', error);
+        alert('Registration failed due to a server error. Please try again.');
+        // Optionally, handle any cleanup or UI changes needed to indicate an error occurred
     });
+    
 }

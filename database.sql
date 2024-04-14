@@ -1,3 +1,3 @@
-UPDATE Trainer
-SET start_hour = '11:00:00'
-WHERE trainer_id = 2;
+DELETE FROM Members WHERE member_id IN (4, 5, 8, 9, 10);
+
+

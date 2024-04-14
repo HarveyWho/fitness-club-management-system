@@ -138,6 +138,42 @@ app.get('/api/getMemberData', async (req, res) => {
     }
 });
 
+app.post('/api/register', async (req, res) => {
+    const { firstName, lastName, email, password, address, phoneNumber, dateOfBirth, gender, exerciseRoutines } = req.body;
+
+    await client.query('BEGIN');
+
+    try {
+        const insertMemberQuery = `
+            INSERT INTO Members (first_name, last_name, email, password, address, phone_number, date_of_birth, gender, exercise_routines, join_date)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_DATE)
+            RETURNING member_id;
+        `;
+        const memberResult = await client.query(insertMemberQuery, [firstName, lastName, email, password, address, phoneNumber, dateOfBirth, gender, exerciseRoutines]);
+        const memberId = memberResult.rows[0].member_id;
+
+        const insertPaymentQuery = `
+            INSERT INTO Payments (member_id, amount, payment_date)
+            VALUES ($1, $2, CURRENT_DATE)
+            RETURNING *;
+        `;
+        await client.query(insertPaymentQuery, [memberId, 40]);
+
+        await client.query('COMMIT');
+        
+        res.status(201).json({ success: true, message: 'Member registered successfully.', memberId });
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Registration error:', error);
+        res.status(500).json({ message: 'Registration failed.', error: error.message });
+    }
+});
+
+
+
+
+
 app.get('/api/getTrainerData', async (req, res) => {
     //const { trainerId } = req.query; // Assuming you pass the trainerId as a query parameter
 
@@ -257,15 +293,26 @@ app.post('/api/updateHealthStats', async (req, res) => {
   
 
   app.get('/api/getAvailableClasses', async (req, res) => {
-    const query = 'SELECT * FROM Classes WHERE space_left > 0  ORDER BY day_of_the_week, start_time;;';
+    const query = `
+        SELECT cl.*, tr.first_name || ' ' || tr.last_name AS trainer_name, rm.room_name
+        FROM Classes cl
+        JOIN Trainer tr ON cl.trainer_id = tr.trainer_id
+        JOIN Room rm ON cl.room_id = rm.room_id;
+    `;
+
     try {
         const result = await client.query(query);
-        res.json(result.rows);
+        res.json(result.rows.map(row => ({
+            ...row,
+            start_time: row.start_time.substr(0, 5), // Format time for consistency
+            end_time: row.end_time.substr(0, 5)
+        })));
     } catch (error) {
         console.error('Error fetching available classes:', error);
-        res.status(500).json({ message: 'Internal server error while fetching classes.' });
+        res.status(500).json({ message: 'Error fetching available classes.' });
     }
 });
+
 
 
 app.post('/api/joinClass', async (req, res) => {
