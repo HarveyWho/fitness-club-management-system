@@ -45,8 +45,8 @@ function updateTrainerAvailability(event) {
     // console.log("Sending endHour:", endHour);
 
     const availabilityData = {
-        startHour: startHour + ":00", // Ensure time format HH:MM:SS
-        endHour: endHour + ":00" // Ensure time format HH:MM:SS
+        startHour: startHour, // Ensure time format HH:MM:SS
+        endHour: endHour // Ensure time format HH:MM:SS
     };
 
     sendUpdateRequest('/api/updateTrainerAvailability', availabilityData)
