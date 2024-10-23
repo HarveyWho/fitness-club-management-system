@@ -28,6 +28,7 @@ npm init -y
 npm install
 node app.js
 
+Make sure to use pgAdmin 4 for the database, and use the DDL and DML files given to initialize the database.
 
 App.js is the server code. SQL file contains DDL and DML files. The public folder contains css, javascript, and html files. 
 
